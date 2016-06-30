@@ -15,8 +15,14 @@
 
     $ pip install -r requirements.txt
     $ npm install
-    $ gunicorn main:app --log-file=-
 
+### Local Deploy ###
+
+#### DEBUG ####
+    $ gunicorn main:app -b 0.0.0.0:8080 --log-file=- --log-level debug --reload
+
+#### RELEASE ####
+    $ gunicorn main:app --log-file=-
 
 ### Deploy to Heroku ###
 
