@@ -24,6 +24,27 @@ saver.restore(sess, "mnist/data/convolutional.ckpt")
 def convolutional(input):
     return sess.run(y2, feed_dict={x: input, keep_prob: 1.0}).flatten().tolist()
 
+x3 = tf.placeholder("float", [None, 1600])
+
+with tf.variable_scope("convolutional3"):
+    keep_prob_3 = tf.placeholder("float")
+    y3, variables = model.convolutional3(x3, keep_prob_3)
+saver = tf.train.Saver(variables)
+saver.restore(sess, "mnist/data/convolutional3_20000_50.ckpt")
+def convolutional3(input):
+    return sess.run(y3, feed_dict={x3: input, keep_prob_3: 1.0}).flatten().tolist()
+
+def fill(image):
+        matrix = np.array(1600*[0])
+        matrix.shape = (40,40)
+        for line in range(6, 34):
+                start =  6
+                end = 34
+                for i in range(start, end):
+                        matrix[line][i] = image[0][(line-6)*28 + i-6]
+        matrix.shape = (1, 1600)
+        return matrix
+
 # webapp
 from flask import Flask, jsonify, render_template, request
 
@@ -34,8 +55,14 @@ def mnist():
     input = ((255 - np.array(request.json, dtype=np.uint8)) / 255.0).reshape(1, 784)
     output1 = simple(input)
     output2 = convolutional(input)
-    return jsonify(results=[output1, output2])
+    padded_input = fill(input)
+    output3 = convolutional3(padded_input)
+    return jsonify(results=[output1, output2, output3])
 
 @app.route('/')
 def main():
     return render_template('index.html')
+
+@app.route('/<path:filename>')
+def send_js(filename):
+    return send_from_directory('/', filename)
